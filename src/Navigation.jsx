@@ -1,9 +1,10 @@
 import React from 'react';
 
 function Navigation({ activeView, onViewChange, theme, toggleDarkMode, darkMode }) {
-  // Change "All Entries" to "My Journal" and remove "New Entry" option
+  // Include both My Journal and Mood Tracker options
   const menuItems = [
-    { id: 'list', label: 'My Journal' }
+    { id: 'list', label: 'My Journal' },
+    { id: 'tracker', label: 'Mood Tracker' }
   ];
   
   return (

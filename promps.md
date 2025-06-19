@@ -37,3 +37,5 @@
 | Ask   | Now time use Add button. When user clicks on Add button let's store the data in indexed DB. |
 | Ask   | Ok, let's move the displaying Journal List to seperate file and have a menu in Home to access it. Preferably a Menu in Top. |
 | Ask   | Ok, Header is not great make it single line and we don't need New ENtry out there as we already have Floating Button. And Call all Entries "My Journal" |
+| Ask   | Let's create new component called Mood Tracker. Let's show Mood Graph based on the Data available from IndexedDB entries |
+| Ask   | Let's seed the IndexedDB with at least 50 diverse sample journal entries so the Mood Tracker can display rich data. |

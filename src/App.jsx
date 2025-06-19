@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import JournalEntry from './JournalEntry.jsx';
 import JournalList from './JournalList.jsx';
 import Navigation from './Navigation.jsx';
+import MoodTracker from './MoodTracker.jsx';
 import './slider.css'; // Import for emoji styles
 import journalDB from './services/db.js'; // Import the IndexedDB service
+import { seedDatabase } from './services/seedData.js'; // Import the seed function
 
 const lightTheme = {
   background: 'linear-gradient(135deg, #f5f7fa 0%, #e8ebf2 100%)',
@@ -60,14 +62,38 @@ function App() {
     document.body.style.fontFamily = 'SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
     document.body.style.transition = 'background 0.5s, color 0.3s';
   }, [darkMode]);
-  
-  // Load entries from IndexedDB when component mounts
+    // Load entries from IndexedDB when component mounts
   useEffect(() => {
     async function loadEntries() {
       try {
         setIsLoading(true);
+        
+        // Load stored entries
         const storedEntries = await journalDB.getAllEntries();
-        setEntries(storedEntries);
+        
+        // Check if we need to seed the database (if less than 10 entries)
+        if (storedEntries.length < 10) {
+          console.log('Few entries found. Seeding database with sample data...');
+          const seedResult = await seedDatabase();
+          
+          if (seedResult.success) {
+            // Show notification about the seeded data
+            setNotification({
+              message: 'Sample journal entries added to demonstrate the app features!',
+              type: 'info'
+            });
+            
+            // Reload entries after seeding
+            const freshEntries = await journalDB.getAllEntries();
+            setEntries(freshEntries);
+          } else {
+            console.log(seedResult.message);
+            setEntries(storedEntries);
+          }
+        } else {
+          setEntries(storedEntries);
+        }
+        
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to load entries from IndexedDB:', error);
@@ -254,11 +280,16 @@ function App() {
           }}>
             {dbError}
           </div>
-        )}
-
-        {/* Conditional rendering based on active view */}
+        )}        {/* Conditional rendering based on active view */}
         {activeView === 'new' ? (
           <JournalEntry onAddEntry={handleAddEntry} theme={theme} />
+        ) : activeView === 'tracker' ? (
+          <MoodTracker
+            entries={entries}
+            theme={theme}
+            darkMode={darkMode}
+            getMoodColor={getMoodColor}
+          />
         ) : (
           <JournalList 
             entries={entries} 
@@ -269,18 +300,17 @@ function App() {
             getMoodEmoji={getMoodEmoji}
             getTagColor={getTagColor}
           />
-        )}
-          {/* Floating Action Button (FAB) for iOS feel */}
+        )}        {/* Floating Action Button (FAB) for iOS feel */}
         <button
           onClick={() => {
-            if (activeView === 'list') {
+            if (activeView === 'list' || activeView === 'tracker') {
               setActiveView('new');
             } else {
               // If already in new entry view, just scroll to top
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
           }}
-          aria-label={activeView === 'list' ? "Add new entry" : "Scroll to top"}
+          aria-label={activeView !== 'new' ? "Add new entry" : "Scroll to top"}
           style={{
             position: 'fixed',
             right: 32,
@@ -292,7 +322,7 @@ function App() {
             color: '#fff',
             border: 'none',
             boxShadow: darkMode ? '0 6px 20px rgba(138, 180, 248, 0.3)' : '0 4px 24px #007aff44',
-            fontSize: activeView === 'list' ? 32 : 24,
+            fontSize: activeView !== 'new' ? 32 : 24,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -303,7 +333,7 @@ function App() {
             WebkitBackdropFilter: 'blur(8px)',
           }}
         >
-          {activeView === 'list' ? '＋' : '↑'}
+          {activeView !== 'new' ? '＋' : '↑'}
         </button>
       </div>
     </div>

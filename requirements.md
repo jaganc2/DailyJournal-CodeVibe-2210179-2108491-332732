@@ -16,13 +16,14 @@ A responsive web and mobile application for journaling and mood analysis, inspir
   - Categorize entries with tags (Family, Personal, Office, Other)
 - **Navigation Menu**
   - Top menu bar for switching between app views
-  - Views: New Entry and All Entries
+  - Views: My Journal, Mood Tracker, and Create Entry (via FAB)
 - **Journal List View**
   - Separate component to display all entries
   - Delete functionality for each entry
 - **Mood Analytics**
-  - Visualize mood trends over time (charts/graphs)
-  - Filter by date range
+  - Dedicated Mood Tracker page with visual graphs and charts
+  - Display mood trends over time with interactive visualizations
+  - Show statistics like average mood, most common mood, and mood distribution
 - **Search & Filter**
   - Search journal entries by keyword
   - Filter by mood or date
@@ -33,6 +34,7 @@ A responsive web and mobile application for journaling and mood analysis, inspir
   - Glassmorphism design elements inspired by iOS
 - **Data Storage**
   - IndexedDB for local storage
+  - Sample seed data with 50+ diverse journal entries
   - Cloud sync (optional for future)
 
 ## Design Inspiration
