@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
-  const [moodData, setMoodData] = useState({
+function MoodTracker({ entries, theme, darkMode, getMoodColor }) {  const [moodData, setMoodData] = useState({
     averageMood: 0,
     moodCounts: {},
     moodHistory: [],
@@ -10,8 +9,43 @@ function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
     lowestMood: 10,
     moodByDay: {},
     recentTrend: 'stable',
-    emotionCounts: {}
+    emotionCounts: {},
+    wordCloudData: []
   });
+  // Function to extract meaningful words from journal text
+  const extractWords = (text) => {
+    if (!text) return [];
+    
+    // List of common stop words to filter out
+    const stopWords = [
+      'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 
+      'any', 'are', 'aren\'t', 'as', 'at', 'be', 'because', 'been', 'before', 'being', 
+      'below', 'between', 'both', 'but', 'by', 'can\'t', 'cannot', 'could', 'couldn\'t', 
+      'did', 'didn\'t', 'do', 'does', 'doesn\'t', 'doing', 'don\'t', 'down', 'during', 
+      'each', 'few', 'for', 'from', 'further', 'had', 'hadn\'t', 'has', 'hasn\'t', 'have', 
+      'haven\'t', 'having', 'he', 'he\'d', 'he\'ll', 'he\'s', 'her', 'here', 'here\'s', 
+      'hers', 'herself', 'him', 'himself', 'his', 'how', 'how\'s', 'i', 'i\'d', 'i\'ll', 
+      'i\'m', 'i\'ve', 'if', 'in', 'into', 'is', 'isn\'t', 'it', 'it\'s', 'its', 'itself', 
+      'let\'s', 'me', 'more', 'most', 'mustn\'t', 'my', 'myself', 'no', 'nor', 'not', 'of', 
+      'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 
+      'over', 'own', 'same', 'shan\'t', 'she', 'she\'d', 'she\'ll', 'she\'s', 'should', 
+      'shouldn\'t', 'so', 'some', 'such', 'than', 'that', 'that\'s', 'the', 'their', 'theirs', 
+      'them', 'themselves', 'then', 'there', 'there\'s', 'these', 'they', 'they\'d', 'they\'ll', 
+      'they\'re', 'they\'ve', 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 
+      'very', 'was', 'wasn\'t', 'we', 'we\'d', 'we\'ll', 'we\'re', 'we\'ve', 'were', 'weren\'t', 
+      'what', 'what\'s', 'when', 'when\'s', 'where', 'where\'s', 'which', 'while', 'who', 'who\'s', 
+      'whom', 'why', 'why\'s', 'with', 'won\'t', 'would', 'wouldn\'t', 'you', 'you\'d', 'you\'ll', 
+      'you\'re', 'you\'ve', 'your', 'yours', 'yourself', 'yourselves'
+    ];
+    
+    // Split text into words, convert to lowercase, and filter out stop words and short words
+    const words = text.toLowerCase()
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '') // Remove punctuation
+      .split(/\s+/)
+      .filter(word => word.length > 3 && !stopWords.includes(word));
+      
+    return words;
+  };
 
   // Process entries to extract mood data
   useEffect(() => {
@@ -28,6 +62,9 @@ function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
     let lowest = 10;
     const moodByDay = {};
     
+    // Word collection for word cloud
+    const wordFrequency = {};
+    
     // Last 10 entries for history (or fewer if less than 10 entries exist)
     const historyEntries = sortedEntries.slice(-10);
     const moodHistory = historyEntries.map(entry => ({
@@ -36,8 +73,7 @@ function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
       emotion: entry.emotion,
       fullDate: entry.date
     }));
-    
-    // Process all entries for statistics
+      // Process all entries for statistics
     entries.forEach(entry => {
       const moodValue = entry.moodValue || 5;
       const entryDate = new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short' });
@@ -63,6 +99,14 @@ function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
       // Track highest and lowest
       if (moodValue > highest) highest = moodValue;
       if (moodValue < lowest) lowest = moodValue;
+      
+      // Extract and count words for word cloud
+      if (entry.journal) {
+        const words = extractWords(entry.journal);
+        words.forEach(word => {
+          wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+        });
+      }
     });
     
     // Calculate most frequent mood
@@ -90,7 +134,25 @@ function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
     Object.keys(moodByDay).forEach(day => {
       moodByDay[day].average = Math.round((moodByDay[day].sum / moodByDay[day].count) * 10) / 10;
     });
-    
+      // Convert word frequency object to array of word objects for the word cloud
+    // Sort by frequency and take top 40 words
+    const wordCloudData = Object.keys(wordFrequency)
+      .map(word => ({
+        text: word,
+        value: wordFrequency[word],
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 40);
+      
+    // Add emotions to the word cloud with their counts
+    Object.keys(emotionCounts).forEach(emotion => {
+      wordCloudData.push({
+        text: emotion,
+        value: emotionCounts[emotion] * 1.5, // Make emotions slightly more prominent
+        isEmotion: true
+      });
+    });
+      
     setMoodData({
       averageMood: Math.round((sum / entries.length) * 10) / 10, // one decimal place
       moodCounts,
@@ -100,7 +162,8 @@ function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
       lowestMood: lowest,
       moodByDay,
       recentTrend,
-      emotionCounts
+      emotionCounts,
+      wordCloudData
     });
   }, [entries]);
 
@@ -667,40 +730,162 @@ function MoodTracker({ entries, theme, darkMode, getMoodColor }) {
           <span>Very Pleasant</span>
         </div>
       </div>
-      
-      {/* Insights */}
+        {/* Insights with Word Cloud */}
       <div style={{
-        background: theme.card,
-        borderRadius: 18,
-        padding: 20,
-        marginBottom: 24,
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: theme.border,
-        boxShadow: theme.shadow,
+        maxWidth: '1200px',
+        margin: '0 auto 40px auto',
+        padding: '0 5%',
       }}>
-        <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, color: theme.color }}>
-          Insights
-        </h4>
-        
-        <div style={{ fontSize: 15, lineHeight: 1.5, color: theme.color }}>
-          <p style={{ marginBottom: 12 }}>
-            Based on your {entries.length} journal entries:
-          </p>
-          <ul style={{ 
-            paddingLeft: 20,
-            marginBottom: 0,
+        <div style={{
+          background: darkMode ? 'rgba(20, 20, 22, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+          borderRadius: '24px',
+          padding: '30px',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: darkMode 
+            ? '0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset' 
+            : '0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5) inset',
+        }}>
+          <h3 style={{ 
+            fontSize: '28px',
+            fontWeight: '700',
+            marginBottom: '30px',
+            color: darkMode ? '#ffffff' : '#000000',
+            textAlign: 'center',
           }}>
-            <li style={{ marginBottom: 8 }}>
-              Your average mood is <span style={{ fontWeight: 600, color: getMoodColor(moodData.averageMood) }}>{moodData.averageMood}</span> ({getMoodText(Math.round(moodData.averageMood))})
-            </li>
-            <li style={{ marginBottom: 8 }}>
-              Your most common mood is <span style={{ fontWeight: 600, color: getMoodColor(moodData.mostFrequentMood) }}>{moodData.mostFrequentMood}</span> ({getMoodText(moodData.mostFrequentMood)})
-            </li>
-            <li style={{ marginBottom: 8 }}>
-              Your mood range is from <span style={{ fontWeight: 600, color: getMoodColor(moodData.lowestMood) }}>{moodData.lowestMood}</span> to <span style={{ fontWeight: 600, color: getMoodColor(moodData.highestMood) }}>{moodData.highestMood}</span>
-            </li>
-          </ul>
+            Your Journal Insights
+          </h3>
+          
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: '30px',
+          }}>
+            {/* Insights list */}
+            <div style={{ 
+              flex: '1 1 300px', 
+              fontSize: 15, 
+              lineHeight: 1.5, 
+              margin: '0 auto 40px auto',
+              color: darkMode ? '#e8eaed' : '#383b42' 
+            }}>
+              <h4 style={{ 
+                fontSize: 20, 
+                fontWeight: 600, 
+                marginBottom: 16, 
+                color: darkMode ? '#fff' : '#000' 
+              }}>
+                Mood Analysis
+              </h4>
+              <p style={{ marginBottom: 12 }}>
+                Based on your {entries.length} journal entries:
+              </p>
+              <ul style={{ 
+                paddingLeft: 20,
+                marginBottom: 0,
+              }}>
+                <li style={{ marginBottom: 8 }}>
+                  Your average mood is <span style={{ fontWeight: 600, color: getMoodColor(moodData.averageMood) }}>{moodData.averageMood}</span> ({getMoodText(Math.round(moodData.averageMood))})
+                </li>
+                <li style={{ marginBottom: 8 }}>
+                  Your most common mood is <span style={{ fontWeight: 600, color: getMoodColor(moodData.mostFrequentMood) }}>{moodData.mostFrequentMood}</span> ({getMoodText(moodData.mostFrequentMood)})
+                </li>
+                <li style={{ marginBottom: 8 }}>
+                  Your mood range is from <span style={{ fontWeight: 600, color: getMoodColor(moodData.lowestMood) }}>{moodData.lowestMood}</span> to <span style={{ fontWeight: 600, color: getMoodColor(moodData.highestMood) }}>{moodData.highestMood}</span>
+                </li>
+                <li style={{ marginBottom: 8 }}>
+                  Most frequent emotion: <span style={{ fontWeight: 600, color: darkMode ? '#8ab4f8' : '#2c6bed' }}>
+                    {Object.entries(moodData.emotionCounts)
+                      .sort((a, b) => b[1] - a[1])[0]?.[0] || "None"}
+                  </span>
+                </li>
+              </ul>
+            </div>
+            
+            {/* Word Cloud */}
+            <div style={{ 
+              flex: '1 1 450px', 
+              minHeight: '300px',
+              position: 'relative',
+              padding: '20px',
+              background: darkMode ? 'rgba(30, 30, 32, 0.5)' : 'rgba(245, 245, 250, 0.5)',
+              borderRadius: '18px',
+              boxShadow: 'inset 0 0 8px rgba(0,0,0,0.1)',
+              overflow: 'hidden',
+            }}>
+              <h4 style={{ 
+                fontSize: 20, 
+                fontWeight: 600, 
+                marginBottom: 20, 
+                color: darkMode ? '#fff' : '#000',
+                textAlign: 'center'
+              }}>
+                Word & Emotion Cloud
+              </h4>
+              
+              {/* Custom Word Cloud implementation */}
+              <div style={{ 
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px',
+                height: '250px',
+                overflow: 'hidden',
+              }}>
+                {moodData.wordCloudData && moodData.wordCloudData.length > 0 ? (
+                  moodData.wordCloudData.map((word, index) => {
+                    // Calculate size based on frequency (value)
+                    const minSize = 14;
+                    const maxSize = 42;
+                    const range = maxSize - minSize;
+                    const maxValue = Math.max(...moodData.wordCloudData.map(w => w.value));
+                    const size = minSize + (word.value / maxValue) * range;
+                    
+                    // Different colors for emotions vs. regular words
+                    const color = word.isEmotion 
+                      ? (darkMode ? '#ff9580' : '#e74c3c') // Red for emotions
+                      : (darkMode 
+                          ? ['#8ab4f8', '#a5d6a7', '#ffcc80', '#ef9a9a', '#b39ddb'][index % 5] // Colorful in dark mode
+                          : ['#2c6bed', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6'][index % 5]); // Colorful in light mode
+                    
+                    // Different rotation for visual interest
+                    const rotation = [-15, -5, 0, 5, 15][Math.floor(Math.random() * 5)];
+                    
+                    return (
+                      <div 
+                        key={index}
+                        style={{ 
+                          fontSize: `${size}px`,
+                          fontWeight: word.isEmotion ? 700 : (size > 24 ? 600 : 400),
+                          color: color,
+                          padding: '5px',
+                          transform: `rotate(${rotation}deg)`,
+                          opacity: (0.7 + (word.value / maxValue) * 0.3),
+                          transition: 'all 0.2s ease',
+                          cursor: 'default',
+                          textShadow: word.isEmotion 
+                            ? `0 1px 2px rgba(0,0,0,0.2)` 
+                            : 'none',
+                          '&:hover': {
+                            transform: 'scale(1.1) rotate(0deg)',
+                            opacity: 1
+                          }
+                        }}
+                      >
+                        {word.text}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ color: darkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>
+                    Not enough journal data to generate word cloud
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

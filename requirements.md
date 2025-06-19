@@ -14,9 +14,10 @@ A responsive web and mobile application for journaling and mood analysis, inspir
   - Select specific emotions relevant to the selected mood level
 - **Tag System**
   - Categorize entries with tags (Family, Personal, Office, Other)
-- **Navigation Menu**
-  - Top menu bar for switching between app views
-  - Views: My Journal, Mood Tracker, and Create Entry (via FAB)
+- **Responsive Navigation Menu**
+  - Desktop: Full-width header with left-aligned title and right-aligned menu
+  - Mobile: Hamburger menu toggle with dropdown navigation
+  - Views: My Journal, Mood Tracker, and Create Entry
 - **Journal List View**
   - Separate component to display all entries
   - Delete functionality for each entry
@@ -24,6 +25,7 @@ A responsive web and mobile application for journaling and mood analysis, inspir
   - Dedicated Mood Tracker page with visual graphs and charts
   - Display mood trends over time with interactive visualizations
   - Show statistics like average mood, most common mood, and mood distribution
+  - Word cloud visualization of common words and emotions from journal entries
 - **Search & Filter**
   - Search journal entries by keyword
   - Filter by mood or date

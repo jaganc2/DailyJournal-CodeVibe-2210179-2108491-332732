@@ -329,46 +329,7 @@ function JournalEntry({ onAddEntry, theme }) {
             marginBottom: 16,
             position: 'relative',
           }}>
-            {[1, 3, 5, 7, 9].map(val => (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setMoodValue(val)}
-                style={{ 
-                  background: moodValue === val ? 
-                    `linear-gradient(135deg, ${getMoodColor(val)}30 0%, ${getMoodColor(val)}15 100%)` : 
-                    'transparent',
-                  border: moodValue === val ? 
-                    `2px solid ${getMoodColor(val)}60` : 
-                    '2px solid transparent',
-                  borderRadius: 14,
-                  width: 56,
-                  height: 40,
-                  padding: 0,
-                  margin: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: moodValue === val ? 
-                    `0 4px 12px ${getMoodColor(val)}30` : 
-                    'none',
-                  position: 'relative',
-                }}
-                aria-label={getMoodText(val)}
-              >
-                {/* Show only the indicator dot for selected value instead of emoji */}
-                {moodValue === val && (
-                  <div style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: getMoodColor(val),
-                  }} />
-                )}
-              </button>
-            ))}
+            
           </div>
           
           {/* Custom styling for the iOS-like range input */}

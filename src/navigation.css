@@ -1,0 +1,38 @@
+/* Navigation styles */
+
+/* Animation for mobile menu */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Media queries for responsive design */
+@media (max-width: 767px) {
+  .desktop-menu {
+    display: none;
+  }
+  
+  .mobile-menu {
+    display: flex;
+  }
+  
+  .mobile-menu-dropdown {
+    animation: fadeIn 0.2s ease-out;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-menu {
+    display: none;
+  }
+  
+  .desktop-menu {
+    display: flex;
+  }
+}

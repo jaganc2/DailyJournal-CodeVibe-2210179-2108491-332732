@@ -78,10 +78,6 @@ function App() {
           
           if (seedResult.success) {
             // Show notification about the seeded data
-            setNotification({
-              message: 'Sample journal entries added to demonstrate the app features!',
-              type: 'info'
-            });
             
             // Reload entries after seeding
             const freshEntries = await journalDB.getAllEntries();
@@ -196,14 +192,14 @@ function App() {
   // Toggle dark mode
   const toggleDarkMode = () => {
     setDarkMode(prev => !prev);
-  };
-  return (
+  };  return (
     <div style={{ 
       minHeight: '100vh', 
       background: 'none', 
       color: theme.color, 
       transition: 'background 0.5s, color 0.3s',
       paddingBottom: 60, // Add padding to account for FAB
+      width: '100%',
     }}>
       {/* Navigation bar */}
       <Navigation 
@@ -214,7 +210,13 @@ function App() {
         darkMode={darkMode}
       />
       
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 1rem', position: 'relative' }}>
+      <div style={{ 
+        maxWidth: activeView === 'tracker' ? '1200px' : '480px', 
+        margin: '0 auto', 
+        padding: '0 1rem', 
+        position: 'relative',
+        width: '100%',
+      }}>
         {/* Notification component */}
         {notification && (
           <div style={{
